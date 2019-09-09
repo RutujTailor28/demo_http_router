@@ -1,58 +1,41 @@
-import React, { Component } from 'react';
-import axios from 'axios'
-import Post from '../../components/Post/Post';
-import FullPost from '../../components/FullPost/FullPost';
-import NewPost from '../../components/NewPost/NewPost';
+import React, {Component} from 'react';
+// import axios from 'axios';
+import {NavLink, Route, Switch,Redirect} from 'react-router-dom';
+
 import './Blog.css';
+import Posts from './Posts/Posts';
+import asyncComponent from "../../aysncComponent";
+// import NewPost from './NewPost/NewPost';
+
+const AsyncComponent = asyncComponent(() => {
+    return import('./NewPost/NewPost')
+});
 
 class Blog extends Component {
-
     state = {
-        posts: [],
-        selectedPostId: null
+        auth:true
     }
-
-    componentDidMount() {
-        axios.get('https://jsonplaceholder.typicode.com/posts').then(response  => {
-            const posts = response.data.slice(0,4);
-            const updatesPosts = posts.map(post => {
-                return {
-                    ...post,
-                    author:'Rutuj'
-                }
-            })
-            this.setState({posts:updatesPosts})
-        });
-    }
-
-    postSelectedHandler = (id) => {
-        this.setState({selectedPostId:id});
-    };
 
     render () {
-
-        const posts = this.state.posts.map(post => {
-                return <Post title={post.title} key={post.id} author={post.author} clicked={() => this.postSelectedHandler(post.id)}/>
-        });
         return (
-            <div className='Blog'>
+            <div className="Blog">
                 <header>
                     <nav>
                         <ul>
-                            <li><a href='/'>Home</a> </li>
-                            <li><a href='/new-post'>New Post</a> </li>
+                            <li><NavLink to="/posts/" exact>Posts</NavLink></li>
+                            <li><NavLink to={{
+                                pathname: '/new-post',
+                                hash: '#submit',
+                                search: '?quick-submit=true'
+                            }}>New Post</NavLink></li>
                         </ul>
                     </nav>
                 </header>
-                <section className="Posts">
-                    {posts}
-                </section>
-                <section>
-                    <FullPost id={this.state.selectedPostId}/>
-                </section>
-                <section>
-                    <NewPost />
-                </section>
+                <Switch>
+                    {this.state.auth ? <Route path="/new-post" component={AsyncComponent}/> : '' }
+                    <Route path="/posts"  component={Posts}/>
+                    <Redirect from='/' to='/posts'/>
+                </Switch>
             </div>
         );
     }
